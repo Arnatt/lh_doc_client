@@ -9,6 +9,9 @@ import Dashboard from '../pages/admin/Dashboard'
 import ManageRequest from '../pages/admin/ManageRequest'
 import LayoutUser from '../layouts/LayoutUser'
 import Request from '../pages/user/Request'
+import DetailRequest from '../pages/user/DetailRequest'
+import HomeUser from '../pages/user/HomeUser'
+import CheckRequest from '../pages/user/CheckRequest'
 
 
 const router = createBrowserRouter([
@@ -27,7 +30,10 @@ const router = createBrowserRouter([
       path: '/user',
       element: <LayoutUser />,
       children: [
+        { index: true, element: <HomeUser /> },
         { path: 'form-request', element: <Request /> },
+        { path: 'detail-request', element: <DetailRequest /> },
+        { path: 'check-request', element: <CheckRequest /> }
       ]
     },
     
@@ -36,7 +42,7 @@ const router = createBrowserRouter([
       element: <LayoutAdmin />,
       children: [
         { path: 'dashboard', element: <Dashboard /> },
-        { path: 'manage-request', element: <ManageRequest /> }
+        { path: 'list-request', element: <ManageRequest /> }
       ]
     }
 ])

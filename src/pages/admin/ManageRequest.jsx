@@ -1,8 +1,11 @@
 import React from 'react'
+import AllTableRequest from '../../components/admin/AllTableRequest'
 
 const ManageRequest = () => {
   return (
-    <div>ManageRequest</div>
+    <div>
+      <AllTableRequest />
+    </div>
   )
 }
 
