@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useRequestStore from '../../store/request-store';
 
 const FormRequest = () => {
     const [data, setData] = useState([]);
@@ -22,76 +23,117 @@ const FormRequest = () => {
     });
 
     const navigate = useNavigate();
+    const token = useRequestStore(state => state.token);
 
     // --- Fetch Address Data ---
+    // --- Fetch Address Data ---
     useEffect(() => {
-        setIsLoading(true); // เริ่มโหลด
-        fetch('https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json')
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                return res.json();
-             })
-            .then(fetchedData => {
+        const fetchAddressData = async () => {
+            try {
+                setIsLoading(true);
+                const res = await fetch('https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json');
+                const fetchedData = await res.json();
                 setData(fetchedData);
-                setIsLoading(false); // โหลดเสร็จ
-            })
-            .catch(error => {
+                setIsLoading(false);
+            } catch (error) {
                 console.error("Error fetching address data:", error);
-                setIsLoading(false); // มีข้อผิดพลาด ก็หยุดโหลด
-                // อาจจะแสดงข้อความ error บน UI ด้วย
-            });
+                setIsLoading(false);
+            }
+        };
+        fetchAddressData();
     }, []);
 
-    // --- Derived Address Options ---
-    const provinces = data;
-    const amphures = provinceId
-        ? provinces.find(p => p.id === parseInt(provinceId))?.amphure || []
-        : [];
-    const tambons = amphureId
-        ? amphures.find(a => a.id === parseInt(amphureId))?.tambon || []
-        : [];
+    // --- Fetch User Profile ---
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            if (!token) return;
 
-    // --- Update Zip Code ---
+            try {
+                const res = await axios.get('http://localhost:5001/api/user-info', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const user = res.data;
+
+                // Update form fields
+                setFormData(prev => ({
+                    ...prev,
+                    fname: user.fname || '',
+                    lname: user.lname || '',
+                    phone: user.phone || '',
+                    address: user.house_no || '',
+                    village: '', // หมู่บ้าน (village) ไม่มีใน API ต้องกรอกเอง
+                    alley: user.alley || '',
+                    road: user.street || '',
+                }));
+
+                // Update address selects
+                setProvinceId(findProvinceId(user.province));
+                setAmphureId(findAmphureId(user.district));
+                setTambonId(findTambonId(user.subdistrict));
+                setZipCode(user.postal_code || '');
+            } catch (error) {
+                console.error("Error fetching user profile:", error.response?.data || error.message);
+            }
+        };
+
+        fetchUserProfile();
+    }, [token, data]); // <<== รอ data province โหลดเสร็จก่อน
+
+    // --- Helper to find IDs from Names ---
+    const findProvinceId = (provinceName) => {
+        const province = data.find(p => p.name_th === provinceName);
+        return province?.id?.toString() || '';
+    };
+
+    const findAmphureId = (districtName) => {
+        const province = data.find(p => p.id.toString() === provinceId);
+        if (!province) return '';
+        const amphure = province.amphure.find(a => a.name_th === districtName);
+        return amphure?.id?.toString() || '';
+    };
+
+    const findTambonId = (subdistrictName) => {
+        const province = data.find(p => p.id.toString() === provinceId);
+        const amphure = province?.amphure.find(a => a.id.toString() === amphureId);
+        const tambon = amphure?.tambon.find(t => t.name_th === subdistrictName);
+        return tambon?.id?.toString() || '';
+    };
+
+    const provinces = data;
+    const amphures = provinceId ? provinces.find(p => p.id === parseInt(provinceId))?.amphure || [] : [];
+    const tambons = amphureId ? amphures.find(a => a.id === parseInt(amphureId))?.tambon || [] : [];
+
     useEffect(() => {
         if (tambonId) {
             const tambon = tambons.find(t => t.id === parseInt(tambonId));
-            setZipCode(tambon ? tambon.zip_code : ''); // Set zip code or clear if not found
+            setZipCode(tambon ? tambon.zip_code : '');
         } else {
-            setZipCode(''); // Clear zip code if no tambon selected
+            setZipCode('');
         }
-    }, [tambonId, tambons]); // Add tambons as dependency
+    }, [tambonId, tambons]);
 
-    // --- Handle Input Change (for controlled components) ---
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-     // --- Handle Select Change (Address) ---
-     const handleProvinceChange = (e) => {
+    const handleProvinceChange = (e) => {
         const newProvinceId = e.target.value;
         setProvinceId(newProvinceId);
         setAmphureId('');
         setTambonId('');
-        // No need to set zip code here, useEffect handles it
     };
 
     const handleAmphureChange = (e) => {
         const newAmphureId = e.target.value;
         setAmphureId(newAmphureId);
         setTambonId('');
-         // No need to set zip code here, useEffect handles it
     };
 
-     const handleTambonChange = (e) => {
+    const handleTambonChange = (e) => {
         setTambonId(e.target.value);
-         // Zip code will update via useEffect
     };
 
-
-    // --- Handle Form Submission ---
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("Form Data Submitted:", {
@@ -101,22 +143,15 @@ const FormRequest = () => {
             tambonId,
             zipCode
         });
-        // --- Add validation here if needed ---
-        // Example: if (!formData.fname || !formData.lname /* ... */) {
-        //   alert('กรุณากรอกข้อมูลให้ครบถ้วน');
-        //   return;
-        // }
-        navigate('/user/detail-request'); // Navigate to the next step
+        navigate('/user/detail-request');
     };
 
-    // --- Tailwind Class Definitions ---
     const baseInputStyles = "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
     const inputClasses = `${baseInputStyles}`;
     const selectClasses = `${baseInputStyles}`;
-    const labelClasses = "block text-sm font-medium text-gray-700 mb-1.5"; // Added more margin-bottom
+    const labelClasses = "block text-sm font-medium text-gray-700 mb-1.5";
     const readOnlyInputClasses = `${baseInputStyles} bg-gray-100 cursor-default`;
 
-    // --- Loading State UI ---
     if (isLoading) {
         return (
             <div className="container mx-auto p-6 text-center text-gray-500">
