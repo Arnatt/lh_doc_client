@@ -29,7 +29,7 @@ const SidebarAdmin = () => {
           Dashboard
         </NavLink>
         <NavLink
-          to={"list-request"}
+          to={"requests"}
           className={({ isActive }) =>
             isActive
               ? "bg-blue-100 text-blue-800 px-4 py-3 rounded-md flex items-center font-medium"

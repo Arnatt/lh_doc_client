@@ -12,6 +12,7 @@ import Request from '../pages/user/Request'
 import DetailRequest from '../pages/user/DetailRequest'
 import HomeUser from '../pages/user/HomeUser'
 import CheckRequest from '../pages/user/CheckRequest'
+import EditRequest from '../pages/admin/EditRequest'
 
 
 const router = createBrowserRouter([
@@ -41,8 +42,10 @@ const router = createBrowserRouter([
       path: '/admin',
       element: <LayoutAdmin />,
       children: [
-        { path: 'dashboard', element: <Dashboard /> },
-        { path: 'list-request', element: <ManageRequest /> }
+        { index: true, element: <Dashboard /> },
+        { path: 'dashboard', element: <Dashboard />},
+        { path: 'requests', element: <ManageRequest /> },
+        { path: 'request/:id', element: <EditRequest />}
       ]
     }
 ])

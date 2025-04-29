@@ -6,6 +6,16 @@ const mockRequests = [
   { id: 3, submittedDate: '2025-04-23T09:15:00Z', documentType: 'หนังสือรับรองการเป็นนักศึกษา', status: 'สำเร็จ' },
   { id: 4, submittedDate: '2025-04-24T11:45:00Z', documentType: 'ใบรับรองผลการเรียน', status: 'รอดำเนินการ' },
   { id: 5, submittedDate: '2025-04-25T08:00:00Z', documentType: 'ใบรับรองการฝึกงาน', status: 'สำเร็จ' },
+  { id: 1, submittedDate: '2025-04-20T10:00:00Z', documentType: 'ใบรับรองผลการเรียน', status: 'รอดำเนินการ' },
+  { id: 2, submittedDate: '2025-04-21T14:30:00Z', documentType: 'ทรานสคริปต์', status: 'กำลังดำเนินการ' },
+  { id: 3, submittedDate: '2025-04-23T09:15:00Z', documentType: 'หนังสือรับรองการเป็นนักศึกษา', status: 'สำเร็จ' },
+  { id: 4, submittedDate: '2025-04-24T11:45:00Z', documentType: 'ใบรับรองผลการเรียน', status: 'รอดำเนินการ' },
+  { id: 5, submittedDate: '2025-04-25T08:00:00Z', documentType: 'ใบรับรองการฝึกงาน', status: 'สำเร็จ' },
+  { id: 1, submittedDate: '2025-04-20T10:00:00Z', documentType: 'ใบรับรองผลการเรียน', status: 'รอดำเนินการ' },
+  { id: 2, submittedDate: '2025-04-21T14:30:00Z', documentType: 'ทรานสคริปต์', status: 'กำลังดำเนินการ' },
+  { id: 3, submittedDate: '2025-04-23T09:15:00Z', documentType: 'หนังสือรับรองการเป็นนักศึกษา', status: 'สำเร็จ' },
+  { id: 4, submittedDate: '2025-04-24T11:45:00Z', documentType: 'ใบรับรองผลการเรียน', status: 'รอดำเนินการ' },
+  { id: 5, submittedDate: '2025-04-25T08:00:00Z', documentType: 'ใบรับรองการฝึกงาน', status: 'สำเร็จ' },
 ];
 
 const TableRequest = () => {
