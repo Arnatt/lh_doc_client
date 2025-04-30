@@ -3,6 +3,7 @@ import axios from 'axios';
 import { currentUser as fetchCurrentUser } from '../api/auth';
 import { getAllRequests } from '../api/admin'; // <--- Import getAllRequests
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { getUserRequests, getUserProfile } from '../api/user';
 
 const requestStore = (set, get) => ({
     token: null,
@@ -14,6 +15,8 @@ const requestStore = (set, get) => ({
     allRequests: [], // กำหนดค่าเริ่มต้นเป็น array ว่างเปล่า
     loadingRequests: false,
     errorRequests: null,
+
+
 
     setToken: (newToken) => {
         set({ token: newToken });
@@ -31,11 +34,11 @@ const requestStore = (set, get) => ({
         set({ currentUser: null });
     },
 
-    setCurrentAdmin: (admin) => { // Action สำหรับตั้งค่าข้อมูล Admin
+    setCurrentAdmin: (admin) => {
         set({ currentAdmin: admin });
     },
 
-    clearCurrentAdmin: () => { // Action สำหรับเคลียร์ข้อมูล Admin
+    clearCurrentAdmin: () => {
         set({ currentAdmin: null });
     },
 
@@ -61,7 +64,7 @@ const requestStore = (set, get) => ({
                 loading: false,
             });
             if (navigate) {
-                navigate("/user"); // เปลี่ยนเป็น "/user" เพื่อไปที่ HomeUser ตาม routes
+                navigate("/user");
             }
             return res;
         } catch (error) {
@@ -102,6 +105,7 @@ const requestStore = (set, get) => ({
     fetchCurrentUser: async () => {
         set({ loading: true, error: null });
         const token = get().token;
+        console.log("fetchCurrentUser using token:", token);
         if (!token) {
             set({ loading: false });
             return;
@@ -112,10 +116,6 @@ const requestStore = (set, get) => ({
         } catch (error) {
             console.error("Failed to fetch current user:", error.response ? error.response.data : error.message);
             set({ token: null, currentUser: null, loading: false, error: error.response ? error.response.data.message : "Failed to fetch user info" });
-            // Optionally redirect to login
-            // if (navigate) {
-            //     navigate('/login');
-            // }
         }
     },
 
@@ -128,7 +128,8 @@ const requestStore = (set, get) => ({
         }
         try {
             const res = await getUserProfile(token);
-            set({ currentUser: res.data, loading: false, currentAdmin: null, isAdmin: false }); // เคลียร์ currentAdmin และ isAdmin เมื่อ fetch user profile
+            console.log('Data from API (fetchUserProfile):', res.data);
+            set({ currentUser: res.data, loading: false, currentAdmin: null, isAdmin: false });
         } catch (error) {
             console.error("Failed to fetch user profile:", error.response ? error.response.data : error.message);
             set({
@@ -155,6 +156,22 @@ const requestStore = (set, get) => ({
         } catch (error) {
             console.error("Failed to fetch all requests:", error);
             set({ errorRequests: error.message || "Failed to fetch all requests", loadingRequests: false, allRequests: [] }); // ตั้งค่า allRequests เป็น [] ในกรณี error
+        }
+    },
+
+    fetchUserRequests: async (token, count = 10) => {
+        set({ loadingRequests: true, errorRequests: null });
+
+        try {
+            const res = await getUserRequests(token, count);
+            set({ allRequests: res.data || [], loadingRequests: false });
+        } catch (error) {
+            console.error('Fetch user requests error:', error);
+            set({
+                errorRequests: error.response?.data?.message || 'Error fetching requests',
+                loadingRequests: false,
+                allRequests: [],
+            });
         }
     },
 

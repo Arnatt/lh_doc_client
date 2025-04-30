@@ -52,7 +52,7 @@ const HeaderAdmin = () => {
 
     return (
         <header className='bg-white h-16 flex items-center justify-end px-6 sm:px-8 border-b border-gray-200 shadow-sm'>
-        
+
 
             {/* User Menu / Logout */}
             <div className='relative' ref={dropdownRef}>

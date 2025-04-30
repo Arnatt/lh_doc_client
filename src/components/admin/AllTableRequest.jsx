@@ -72,11 +72,11 @@ const AllTableRequest = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-100 min-h-screen">
-            <div className="max-w-7xl mx-auto bg-white shadow-md rounded-lg p-6">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6">จัดการคำร้องทั้งหมด</h2>
+        <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
+            <div className="max-w-7xl mx-auto bg-white shadow-md rounded-lg p-4 sm:p-6">
+                <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-4 sm:mb-6">จัดการคำร้องทั้งหมด</h2>
 
-                <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div className="mb-4 sm:mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 items-end">
                     <div>
                         <label htmlFor="search" className="block text-gray-700 text-sm font-bold mb-1">ค้นหา:</label>
                         <input
@@ -122,12 +122,14 @@ const AllTableRequest = () => {
                             ))}
                         </select>
                     </div>
-                    <button
-                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        onClick={handleResetFilters}
-                    >
-                        รีเซ็ตฟิลเตอร์
-                    </button>
+                    <div className="sm:col-span-2 md:col-span-4">
+                        <button
+                            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full sm:w-auto"
+                            onClick={handleResetFilters}
+                        >
+                            รีเซ็ตฟิลเตอร์
+                        </button>
+                    </div>
                 </div>
 
                 {loadingRequests && <p className="text-gray-500">กำลังโหลดข้อมูล...</p>}
@@ -138,26 +140,26 @@ const AllTableRequest = () => {
                         <table className="min-w-full leading-normal shadow-md rounded-lg overflow-hidden border-collapse">
                             <thead className="bg-gray-300 text-gray-700">
                                 <tr>
-                                    <th className="px-4 py-3 border-b-2 border-gray-200 text-left text-sm font-semibold uppercase tracking-wider">No.</th>
-                                    <th className="px-4 py-3 border-b-2 border-gray-200 text-left text-sm font-semibold uppercase tracking-wider whitespace-nowrap">วันที่ร้องขอ</th>
-                                    <th className="px-4 py-3 border-b-2 border-gray-200 text-left text-sm font-semibold uppercase tracking-wider whitespace-nowrap">ชื่อผู้ร้องขอ</th>
-                                    <th className="px-4 py-3 border-b-2 border-gray-200 text-left text-sm font-semibold uppercase tracking-wider">เอกสารที่ร้องขอ</th>
-                                    <th className="px-4 py-3 border-b-2 border-gray-200 text-left text-sm font-semibold uppercase tracking-wider whitespace-nowrap">วันที่รับเอกสาร</th>
-                                    <th className="px-4 py-3 border-b-2 border-gray-200 text-left text-sm font-semibold uppercase tracking-wider">สถานะ</th>
-                                    <th className="px-4 py-3 border-b-2 border-gray-200 text-left text-sm font-semibold uppercase tracking-wider">จัดการ</th>
+                                    <th className="px-2 sm:px-4 py-3 border-b-2 border-gray-200 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider">No.</th>
+                                    <th className="px-2 sm:px-4 py-3 border-b-2 border-gray-200 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider whitespace-nowrap">วันที่ร้องขอ</th>
+                                    <th className="px-2 sm:px-4 py-3 border-b-2 border-gray-200 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider whitespace-nowrap">ชื่อผู้ร้องขอ</th>
+                                    <th className="px-2 sm:px-4 py-3 border-b-2 border-gray-200 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider">เอกสารที่ร้องขอ</th>
+                                    <th className="px-2 sm:px-4 py-3 border-b-2 border-gray-200 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider whitespace-nowrap">วันที่รับเอกสาร</th>
+                                    <th className="px-2 sm:px-4 py-3 border-b-2 border-gray-200 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider">สถานะ</th>
+                                    <th className="px-2 sm:px-4 py-3 border-b-2 border-gray-200 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider">จัดการ</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white">
                                 {filteredRequests.map((request, index) => (
                                     <tr key={request?.req_id}>
-                                        <td className="px-4 py-4 border-b border-gray-200 text-sm">{index + 1}</td>
-                                        <td className="px-4 py-4 border-b border-gray-200 text-sm whitespace-nowrap">{new Date(request?.request_date).toLocaleDateString()}</td>
-                                        <td className="px-4 py-4 border-b border-gray-200 text-sm whitespace-nowrap">{request?.fname} {request?.lname}</td>
-                                        <td className="px-4 py-4 border-b border-gray-200 text-sm">{request?.doc_type || '-'}</td>
-                                        <td className="px-4 py-4 border-b border-gray-200 text-sm whitespace-nowrap">
+                                        <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm">{index + 1}</td>
+                                        <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm whitespace-nowrap">{new Date(request?.request_date).toLocaleDateString()}</td>
+                                        <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm whitespace-nowrap">{request?.fname} {request?.lname}</td>
+                                        <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm">{request?.doc_type || '-'}</td>
+                                        <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm whitespace-nowrap">
                                             {request?.receive_date ? new Date(request?.receive_date).toLocaleDateString() : '-'}
                                         </td>
-                                        <td className="px-4 py-4 border-b border-gray-200 text-sm">
+                                        <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${request?.status === 'รอดำเนินการ' ? 'yellow-100 text-yellow-800' :
                                                 request?.status === 'กำลังดำเนินการ' ? 'blue-100 text-blue-800' :
                                                     request?.status === 'ดำเนินการเรียบร้อย' ? 'green-100 text-green-800' :
@@ -166,16 +168,16 @@ const AllTableRequest = () => {
                                                 {request?.status}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-4 border-b border-gray-200 text-sm">
+                                        <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm">
                                             <Link to={`/admin/request/${request?.req_id}`} className="text-blue-500 hover:text-blue-700">
-                                                <PencilSquareIcon className="h-5 w-5" />
+                                                <PencilSquareIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                                             </Link>
                                         </td>
                                     </tr>
                                 ))}
                                 {filteredRequests.length === 0 && (
                                     <tr>
-                                        <td className="px-4 py-4 text-sm text-gray-500 text-center" colSpan={6}>ไม่พบคำร้องตามเงื่อนไข</td>
+                                        <td className="px-4 py-4 text-sm text-gray-500 text-center" colSpan={7}>ไม่พบคำร้องตามเงื่อนไข</td>
                                     </tr>
                                 )}
                             </tbody>

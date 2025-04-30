@@ -1,31 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useRequestStore from '../../store/request-store';
+import axios from 'axios'; // Make sure axios is imported
 
 const FormRequest = () => {
     const [data, setData] = useState([]);
-    const [isLoading, setIsLoading] = useState(true); // State สำหรับ Loading
+    const [isLoading, setIsLoading] = useState(true);
     const [provinceId, setProvinceId] = useState('');
     const [amphureId, setAmphureId] = useState('');
     const [tambonId, setTambonId] = useState('');
     const [zipCode, setZipCode] = useState('');
 
-    // --- State for form fields (Optional but recommended for controlled components) ---
     const [formData, setFormData] = useState({
         title: '',
         fname: '',
         lname: '',
         phone: '',
         address: '',
-        village: '',
+        village: '', // ค่าเริ่มต้นสำหรับหมู่ที่
         alley: '',
         road: '',
     });
-
     const navigate = useNavigate();
     const token = useRequestStore(state => state.token);
+    const fetchUserProfile = useRequestStore(state => state.fetchUserProfile);
+    const currentUser = useRequestStore(state => state.currentUser);
 
-    // --- Fetch Address Data ---
     // --- Fetch Address Data ---
     useEffect(() => {
         const fetchAddressData = async () => {
@@ -43,70 +43,120 @@ const FormRequest = () => {
         fetchAddressData();
     }, []);
 
-    // --- Fetch User Profile ---
+    // --- Fetch User Profile on component mount and token change ---
     useEffect(() => {
-        const fetchUserProfile = async () => {
-            if (!token) return;
+        if (token) {
+            fetchUserProfile();
+        }
+    }, [token, fetchUserProfile]);
 
-            try {
-                const res = await axios.get('http://localhost:5001/api/user-info', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                const user = res.data;
+    const normalizeString = (str) => str?.trim().toLowerCase();
 
-                // Update form fields
-                setFormData(prev => ({
-                    ...prev,
-                    fname: user.fname || '',
-                    lname: user.lname || '',
-                    phone: user.phone || '',
-                    address: user.house_no || '',
-                    village: '', // หมู่บ้าน (village) ไม่มีใน API ต้องกรอกเอง
-                    alley: user.alley || '',
-                    road: user.street || '',
-                }));
-
-                // Update address selects
-                setProvinceId(findProvinceId(user.province));
-                setAmphureId(findAmphureId(user.district));
-                setTambonId(findTambonId(user.subdistrict));
-                setZipCode(user.postal_code || '');
-            } catch (error) {
-                console.error("Error fetching user profile:", error.response?.data || error.message);
-            }
-        };
-
-        fetchUserProfile();
-    }, [token, data]); // <<== รอ data province โหลดเสร็จก่อน
-
-    // --- Helper to find IDs from Names ---
+    // findProvinceId ใช้ชื่อจังหวัดเพื่อค้นหา id
     const findProvinceId = (provinceName) => {
-        const province = data.find(p => p.name_th === provinceName);
+        if (!provinceName || !data.length) return '';
+
+        const normalizedProvinceName = normalizeString(provinceName);
+        const province = data.find(p => normalizeString(p.name_th) === normalizedProvinceName);
         return province?.id?.toString() || '';
     };
 
-    const findAmphureId = (districtName) => {
-        const province = data.find(p => p.id.toString() === provinceId);
-        if (!province) return '';
-        const amphure = province.amphure.find(a => a.name_th === districtName);
+    // findAmphureId ใช้ชื่ออำเภอและ provinceId เพื่อค้นหา id
+    const findAmphureId = (districtName, currentProvinceId) => {
+        if (!districtName || !currentProvinceId || !data.length) return '';
+
+        const normalizedDistrictName = normalizeString(districtName);
+        const province = data.find(p => p.id?.toString() === currentProvinceId);
+
+        if (!province?.amphure) return '';
+
+        const amphure = province.amphure.find(a =>
+            normalizeString(a.name_th) === normalizedDistrictName
+        );
+
         return amphure?.id?.toString() || '';
     };
 
-    const findTambonId = (subdistrictName) => {
-        const province = data.find(p => p.id.toString() === provinceId);
-        const amphure = province?.amphure.find(a => a.id.toString() === amphureId);
-        const tambon = amphure?.tambon.find(t => t.name_th === subdistrictName);
+    // findTambonId ใช้ชื่อตำบล provinceId และ amphureId เพื่อค้นหา id
+    const findTambonId = (subdistrictName, currentProvinceId, currentAmphureId) => {
+        if (!subdistrictName || !currentProvinceId || !currentAmphureId || !data.length) return '';
+
+        const normalizedSubdistrictName = normalizeString(subdistrictName);
+        const province = data.find(p => p.id?.toString() === currentProvinceId);
+
+        if (!province?.amphure) return '';
+
+        const amphure = province.amphure.find(a => a.id?.toString() === currentAmphureId);
+
+        if (!amphure?.tambon) return '';
+
+        const tambon = amphure.tambon.find(t =>
+            normalizeString(t.name_th) === normalizedSubdistrictName
+        );
+
         return tambon?.id?.toString() || '';
     };
 
-    const provinces = data;
-    const amphures = provinceId ? provinces.find(p => p.id === parseInt(provinceId))?.amphure || [] : [];
-    const tambons = amphureId ? amphures.find(a => a.id === parseInt(amphureId))?.tambon || [] : [];
-
+    // กำหนดค่าเริ่มต้นจาก currentUser และโหลดข้อมูลที่อยู่
     useEffect(() => {
-        if (tambonId) {
-            const tambon = tambons.find(t => t.id === parseInt(tambonId));
-            setZipCode(tambon ? tambon.zip_code : '');
+        if (currentUser && data.length > 0) {
+            console.log("DEBUG: มีข้อมูล currentUser และ data แล้ว");
+            console.log("DEBUG: currentUser Province:", currentUser.province);
+            console.log("DEBUG: currentUser District:", currentUser.district);
+            console.log("DEBUG: currentUser Subdistrict:", currentUser.subdistrict)
+            // 1. กำหนดค่าข้อมูลพื้นฐาน
+            setFormData(prev => ({
+                ...prev,
+                title: currentUser.title || '',
+                fname: currentUser.fname || '',
+                lname: currentUser.lname || '',
+                phone: currentUser.phone || '',
+                address: currentUser.house_no || '',
+                village: currentUser.village_no || '',
+                alley: currentUser.alley || '',
+                road: currentUser.street || '',
+            }));
+
+            // 2. ค้นหาและกำหนดค่า provinceId
+            const provinceIdFound = findProvinceId(currentUser.province);
+            console.log("DEBUG: provinceId found:", provinceIdFound);
+
+            if (provinceIdFound) {
+                setProvinceId(provinceIdFound);
+
+                // 3. เมื่อมี provinceId แล้ว ค้นหาและกำหนดค่า amphureId
+                const amphureIdFound = findAmphureId(currentUser.district, provinceIdFound);
+                console.log("DEBUG: amphureId found:", amphureIdFound);
+
+                if (amphureIdFound) {
+                    setAmphureId(amphureIdFound);
+
+                    // 4. เมื่อมี provinceId และ amphureId แล้ว ค้นหาและกำหนดค่า tambonId
+                    const tambonIdFound = findTambonId(
+                        currentUser.subdistrict,
+                        provinceIdFound,
+                        amphureIdFound
+                    );
+                    console.log("DEBUG: tambonId found:", tambonIdFound);
+
+                    if (tambonIdFound) {
+                        setTambonId(tambonIdFound);
+                    }
+                }
+            }
+        }
+    }, [currentUser, data]);
+
+    // คำนวณตัวเลือกสำหรับ dropdowns
+    const provinces = data;
+    const amphures = provinceId ? provinces.find(p => p.id?.toString() === provinceId)?.amphure || [] : [];
+    const tambons = amphureId ? amphures.find(a => a.id?.toString() === amphureId)?.tambon || [] : [];
+
+    // กำหนดรหัสไปรษณีย์เมื่อ tambonId เปลี่ยน
+    useEffect(() => {
+        if (tambonId && tambons.length > 0) {
+            const selectedTambon = tambons.find(t => t.id?.toString() === tambonId);
+            setZipCode(selectedTambon ? selectedTambon.zip_code : '');
         } else {
             setZipCode('');
         }
@@ -155,18 +205,16 @@ const FormRequest = () => {
     if (isLoading) {
         return (
             <div className="container mx-auto p-6 text-center text-gray-500">
-                กำลังโหลดข้อมูลที่อยู่...
+                กำลังโหลดข้อมูล...
             </div>
         );
     }
 
-    // --- Form UI ---
     return (
         <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg max-w-4xl mt-4 mb-8">
             <h1 className="text-xl font-bold text-gray-800 mb-6 border-b pb-3">กรอกข้อมูลผู้ขอรับเอกสาร</h1>
             <form className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5" onSubmit={handleSubmit}>
 
-                {/* Personal Info Row (Spans Full Width on Medium+) */}
                 <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-5">
                     <div>
                         <label htmlFor="title" className={labelClasses}>คำนำหน้า</label>
@@ -175,27 +223,21 @@ const FormRequest = () => {
                             <option value="นาย">นาย</option>
                             <option value="นาง">นาง</option>
                             <option value="นางสาว">นางสาว</option>
-                            {/* Add other titles if needed */}
                         </select>
                     </div>
                     <div>
                         <label htmlFor="fname" className={labelClasses}>ชื่อจริง</label>
-                        <input type="text" id="fname" name="fname" value={formData.fname} onChange={handleInputChange} placeholder="ชื่อจริง" className={inputClasses}  />
+                        <input type="text" id="fname" name="fname" value={formData.fname} onChange={handleInputChange} placeholder="ชื่อจริง" className={inputClasses} />
                     </div>
                     <div>
                         <label htmlFor="lname" className={labelClasses}>นามสกุล</label>
-                        <input type="text" id="lname" name="lname" value={formData.lname} onChange={handleInputChange} placeholder="นามสกุล" className={inputClasses}  />
+                        <input type="text" id="lname" name="lname" value={formData.lname} onChange={handleInputChange} placeholder="นามสกุล" className={inputClasses} />
                     </div>
                     <div>
                         <label htmlFor="phone" className={labelClasses}>เบอร์โทรศัพท์</label>
-                        <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="08xxxxxxxx" className={inputClasses}  />
+                        <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="08xxxxxxxx" className={inputClasses} />
                     </div>
                 </div>
-
-                {/* Address Section Title (Optional) */}
-                {/* <h2 className="md:col-span-2 text-lg font-semibold text-gray-700 mt-4 border-t pt-4">ที่อยู่ปัจจุบัน</h2> */}
-
-                {/* Address Fields */}
                 <div>
                     <label htmlFor="address" className={labelClasses}>บ้านเลขที่</label>
                     <input type="text" id="address" name="address" value={formData.address} onChange={handleInputChange} placeholder="เลขที่บ้าน/อาคาร" className={inputClasses} />
@@ -212,8 +254,6 @@ const FormRequest = () => {
                     <label htmlFor="road" className={labelClasses}>ถนน</label>
                     <input type="text" id="road" name="road" value={formData.road} onChange={handleInputChange} placeholder="ถนน" className={inputClasses} />
                 </div>
-
-                {/* Province / Amphure / Tambon / Zip Code */}
                 <div>
                     <label htmlFor="province" className={labelClasses}>จังหวัด</label>
                     <select id="province" name="province" className={selectClasses} value={provinceId} onChange={handleProvinceChange} required>
@@ -245,8 +285,6 @@ const FormRequest = () => {
                     <label htmlFor="zipcode" className={labelClasses}>รหัสไปรษณีย์</label>
                     <input type="text" id="zipcode" name="zipcode" className={readOnlyInputClasses} placeholder="รหัสไปรษณีย์" value={zipCode} readOnly />
                 </div>
-
-                {/* Submit Button (Spans Full Width) */}
                 <div className="md:col-span-2 flex justify-center mt-6">
                     <button
                         type="submit"
