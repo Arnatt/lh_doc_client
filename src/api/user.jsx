@@ -16,3 +16,13 @@ export const getUserRequests = async (token, count = 10) => {
   });
   return res.data;
 };
+
+export const updateUserProfile = async (token, updatedData) => {
+  const res = await axios.put('http://localhost:5001/api/update-info', updatedData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }
+  });
+  return res.data;
+};

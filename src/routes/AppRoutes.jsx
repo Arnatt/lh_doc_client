@@ -13,41 +13,54 @@ import DetailRequest from '../pages/user/DetailRequest'
 import HomeUser from '../pages/user/HomeUser'
 import CheckRequest from '../pages/user/CheckRequest'
 import EditRequest from '../pages/admin/EditRequest'
+import ProtectedRouteAdmin from './ProtectedRouteAdmin'
+import ProtectedRouteUser from './ProtectedRouteUser'
 
 
 const router = createBrowserRouter([
-    {
-        path: '/',
-        element: <Layout />,
-        children: [
-          { index: true, element: <Home /> },       // http://localhost:5173/
-          { path: 'home', element: <Home /> },      // http://localhost:5173/home
-          { path: 'login', element: <Login /> },
-          { path: 'login-admin', element: <LoginAdmin /> }
-        ]
-    },
+  {
+    path: '/',
+    element: <Layout />,
+    children: [
+      { index: true, element: <Home /> },       // http://localhost:5173/
+      { path: 'home', element: <Home /> },      // http://localhost:5173/home
+      { path: 'login', element: <Login /> },
+      { path: 'login-admin', element: <LoginAdmin /> }
+    ]
+  },
 
-    {
-      path: '/user',
-      element: <LayoutUser />,
-      children: [
-        { index: true, element: <HomeUser /> },
-        { path: 'form-request', element: <Request /> },
-        { path: 'detail-request', element: <DetailRequest /> },
-        { path: 'check-request', element: <CheckRequest /> }
-      ]
-    },
-    
-    {
-      path: '/admin',
-      element: <LayoutAdmin />,
-      children: [
-        { index: true, element: <Dashboard /> },
-        { path: 'dashboard', element: <Dashboard />},
-        { path: 'requests', element: <ManageRequest /> },
-        { path: 'request/:id', element: <EditRequest />}
-      ]
-    }
+  {
+    path: '/user',
+    element: <ProtectedRouteUser />,
+    children: [
+      {
+        element: <LayoutUser />,
+        children: [
+          { index: true, element: <HomeUser /> },
+          { path: 'form-request', element: <Request /> },
+          { path: 'detail-request', element: <DetailRequest /> },
+          { path: 'check-request', element: <CheckRequest /> }
+        ]
+      }
+    ]
+
+  },
+
+  {
+    path: '/admin',
+    element: <ProtectedRouteAdmin />, // ครอบ layout ที่ต้องการป้องกัน
+    children: [
+      {
+        element: <LayoutAdmin />, // Layout นี้จะโหลดหลังผ่าน ProtectedRouteAdmin แล้ว
+        children: [
+          { index: true, element: <Dashboard /> },
+          { path: 'dashboard', element: <Dashboard /> },
+          { path: 'requests', element: <ManageRequest /> },
+          { path: 'request/:id', element: <EditRequest /> },
+        ]
+      }
+    ]
+  }
 ])
 
 
@@ -55,7 +68,7 @@ const router = createBrowserRouter([
 const AppRoutes = () => {
   return (
     <>
-        <RouterProvider router={router} />
+      <RouterProvider router={router} />
     </>
   )
 }

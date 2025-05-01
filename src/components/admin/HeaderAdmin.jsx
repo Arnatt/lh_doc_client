@@ -14,10 +14,16 @@ const HeaderAdmin = () => {
     };
 
     useEffect(() => {
+        console.log("HeaderAdmin: currentAdmin on mount", currentAdmin);
         if (!currentAdmin && localStorage.getItem('request-store')) {
+            console.log("HeaderAdmin: fetching currentAdmin");
             fetchCurrentAdmin();
         }
     }, [currentAdmin, fetchCurrentAdmin]);
+
+    useEffect(() => {
+        console.log("HeaderAdmin: currentAdmin after potential fetch", currentAdmin);
+    }, [currentAdmin]);
 
     const handleLogout = () => {
         clearToken();
@@ -52,11 +58,7 @@ const HeaderAdmin = () => {
 
     return (
         <header className='bg-white h-16 flex items-center justify-end px-6 sm:px-8 border-b border-gray-200 shadow-sm'>
-
-
-            {/* User Menu / Logout */}
             <div className='relative' ref={dropdownRef}>
-                {/* Admin Button */}
                 <button
                     onClick={toggleDropdown}
                     className='flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-gray-900 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors hover:bg-gray-100'
@@ -70,8 +72,6 @@ const HeaderAdmin = () => {
                         aria-hidden="true"
                     />
                 </button>
-
-                {/* Dropdown Menu */}
                 <div
                     className={`
                         absolute top-full right-0 mt-2 w-48 bg-white shadow-lg border border-gray-200 rounded-md overflow-hidden z-20
@@ -83,7 +83,6 @@ const HeaderAdmin = () => {
                     aria-labelledby="admin-menu-button"
                 >
                     <div className="py-1" role="none">
-                        {/* Logout Button */}
                         <button
                             onClick={handleLogout}
                             className='w-full flex items-center space-x-2 text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:bg-red-50 transition-colors'
@@ -92,7 +91,6 @@ const HeaderAdmin = () => {
                             <ArrowRightOnRectangleIcon className="h-4 w-4" aria-hidden="true" />
                             <span>ออกจากระบบ</span>
                         </button>
-                        {/* สามารถเพิ่มรายการเมนูอื่นๆ สำหรับ Admin ได้ที่นี่ */}
                     </div>
                 </div>
             </div>
