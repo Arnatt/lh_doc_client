@@ -26,3 +26,13 @@ export const updateUserProfile = async (token, updatedData) => {
   });
   return res.data;
 };
+
+export const submitRequest = async (token, requestData) => {
+  const res = await axios.post('http://localhost:5001/api/submit-request', requestData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }
+  });
+  return res.data;
+}

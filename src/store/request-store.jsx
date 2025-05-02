@@ -3,7 +3,7 @@ import axios from 'axios';
 import { currentUser as fetchCurrentUser } from '../api/auth';
 import { getAllRequests } from '../api/admin'; // <--- Import getAllRequests
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { getUserRequests, getUserProfile, updateUserProfile } from '../api/user';
+import { getUserRequests, getUserProfile, updateUserProfile, submitRequest } from '../api/user';
 
 const requestStore = (set, get) => ({
     token: null,
@@ -12,29 +12,20 @@ const requestStore = (set, get) => ({
     loading: false,
     error: null,
     isAdmin: false,
-    allRequests: [], // กำหนดค่าเริ่มต้นเป็น array ว่างเปล่า
+    allRequests: [],
     loadingRequests: false,
     errorRequests: null,
     requestInfo: {},
 
     setToken: (newToken) => {set({ token: newToken })},
-
     clearToken: () => {set({ token: null })},
-
     setCurrentUser: (user) => {set({ currentUser: user })},
-
     clearCurrentUser: () => {set({ currentUser: null })},
-
     setCurrentAdmin: (admin) => {set({ currentAdmin: admin })},
-
     clearCurrentAdmin: () => {set({ currentAdmin: null })},
-
     setLoading: (isLoading) => {set({ loading: isLoading })},
-
     setError: (err) => { set({ error: err }) },
-
     setIsAdmin: (isAdmin) => { set({ isAdmin }) },
-
     setRequestInfo: (info) => set({ requestInfo: info }),
 
     actionLogin: async (no_card_id, phone, navigate) => {
@@ -198,6 +189,28 @@ const requestStore = (set, get) => ({
             });
         }
     },
+
+    submitRequestAction: async (requestData, navigate) => {
+        set({ loading: true, error: null });
+        const token = get().token;
+        if (!token) {
+            set({ loading: false, error: 'Token not available. Please log in.' });
+            return;
+        }
+        try {
+            const response = await submitRequest(token, requestData);
+            set({ requestInfo: response, loading: false, error: null });
+            if (navigate) {
+                navigate('/user');
+            }
+            return response;
+        } catch (error) {
+            console.error("Failed to submit document request:", error);
+            set({ loading: false, error: error.response?.data?.message || 'Failed to submit request' });
+            throw error;
+        }
+    },
+
 })
 
 const usePersist = {

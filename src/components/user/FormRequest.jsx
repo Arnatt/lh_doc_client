@@ -99,15 +99,29 @@ const FormRequest = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // ดึงชื่อจังหวัด
+        const selectedProvince = provinces.find(p => p.id?.toString() === provinceId);
+        const provinceName = selectedProvince ? selectedProvince.name_th : '';
+
+        // ดึงชื่ออำเภอ
+        const selectedAmphure = amphures.find(a => a.id?.toString() === amphureId);
+        const amphureName = selectedAmphure ? selectedAmphure.name_th : '';
+
+        // ดึงชื่อตำบล
+        const selectedTambon = tambons.find(t => t.id?.toString() === tambonId);
+        const tambonName = selectedTambon ? selectedTambon.name_th : '';
+
         const updatedAddressData = {
-            address: formData.address,
-            village: formData.village,
+            house_no: formData.address,
+            village_no: formData.village,
             alley: formData.alley,
-            road: formData.road,
-            provinceId,
-            amphureId,
-            tambonId,
-            zipCode,
+            street: formData.road,
+            province: provinceName, // ใช้ชื่อจังหวัด
+            district: amphureName,   // ใช้ชื่ออำเภอ
+            subdistrict: tambonName, // ใช้ชื่อตำบล
+            postal_code: zipCode,
+            phone: formData.phone,
         };
 
         try {
@@ -118,6 +132,7 @@ const FormRequest = () => {
             console.error("Error updating address info:", error);
         }
     };
+
 
     const baseInputStyles = "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
     const inputClasses = `${baseInputStyles}`;
