@@ -41,19 +41,25 @@ const TableRequest = () => {
             <tbody className="bg-white">
               {allRequests.map((req) => (
                 <tr key={req.req_id}>
-                  <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm">{req.request_date}</td>
+                  <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm">
+                    {new Intl.DateTimeFormat('en-GB').format(new Date(req.request_date))}
+                  </td>
                   <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm">{req.requested_documents}</td>
                   <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm">{req.related_patients}</td>
                   <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${req.status === 'รอดำเนินการ' ? 'yellow-100 text-yellow-800' :
-                        req.status === 'กำลังดำเนินการ' ? 'blue-100 text-blue-800' :
-                          req.status === 'ดำเนินการเรียบร้อย' ? 'green-100 text-green-800' :
-                            'gray-100 text-gray-800'
+                      req.status === 'กำลังดำเนินการ' ? 'blue-100 text-blue-800' :
+                        req.status === 'ดำเนินการเรียบร้อย' ? 'green-100 text-green-800' :
+                          'gray-100 text-gray-800'
                       }`}>
                       {req.status}
                     </span>
                   </td>
-                  <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm">{req.receive_date || '-'}</td>
+                  <td className="px-2 sm:px-4 py-4 border-b border-gray-200 text-xs sm:text-sm">
+                    {req.receive_date
+                      ? new Intl.DateTimeFormat('en-GB').format(new Date(req.receive_date))
+                      : '-'}
+                  </td>
                 </tr>
               ))}
             </tbody>

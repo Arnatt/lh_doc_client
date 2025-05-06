@@ -56,7 +56,7 @@ const FormDetailRequest = () => {
     const [requestDateRange, setRequestDateRange] = useState({ from: '', to: '' });
     const [purpose, setPurpose] = useState('');
     const [otherPurpose, setOtherPurpose] = useState('');
-    const [relatedPatientInfo, setRelatedPatientInfo] = useState({ name: '', idCard: '', relation: '' });
+    const [relatedPatientInfo, setRelatedPatientInfo] = useState({ name: '', idCard: '', relation: '', phone: '' });
     const [companyInfo, setCompanyInfo] = useState({ name: '', patientName: '', patientIdCard: '' });
 
     const isAnyDocSelected = Object.values(selectedDocs).some(value => value);
@@ -99,7 +99,7 @@ const FormDetailRequest = () => {
         const selectedDocumentLabels = selectedDocumentKeys.map(key => {
             const doc = documentOptions.find(option => option.key === key);
             return doc ? doc.label : '';
-        }).filter(label => label !== ''); 
+        }).filter(label => label !== '');
 
         const selectedDocumentsString = selectedDocumentLabels.join(', ');
 
@@ -108,7 +108,7 @@ const FormDetailRequest = () => {
             patientDetails: {
                 name: requesterType === 'patient' ? '' : relatedPatientInfo.name,
                 idCard: requesterType === 'patient' ? '' : relatedPatientInfo.idCard,
-                phone: requesterType === 'patient' ? '' : ''
+                phone: requesterType === 'patient' ? '' : relatedPatientInfo.phone
             },
             selectedDocuments: selectedDocumentsString, // เปลี่ยนเป็น String
             requestDateRange,
@@ -153,11 +153,7 @@ const FormDetailRequest = () => {
                 <fieldset className={fieldsetClasses}>
                     <legend className={sectionLabelClasses}>ความสัมพันธ์กับผู้ป่วย</legend>
                     <div className="space-y-3">
-                        {[
-                            { value: 'patient', label: 'ผู้ป่วย' },
-                            { value: 'relative', label: 'ญาติผู้ป่วย' },
-                            { value: 'company', label: 'ตัวแทนบริษัท' },
-                        ].map(type => (
+                        {[{ value: 'patient', label: 'ผู้ป่วย' }, { value: 'relative', label: 'ญาติผู้ป่วย' }, { value: 'company', label: 'ตัวแทนบริษัท' }].map(type => (
                             <label key={type.value} className={itemLabelClasses}>
                                 <input
                                     type="radio"
@@ -177,8 +173,9 @@ const FormDetailRequest = () => {
                             <h3 className="text-sm font-medium text-gray-600 mb-2">ข้อมูลเพิ่มเติมสำหรับญาติ</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input className={inputClasses} placeholder="เกี่ยวข้องเป็น..." aria-label="ความสัมพันธ์กับผู้ป่วย" name="relation" value={relatedPatientInfo.relation} onChange={handleInputChange} required />
-                                <input className={inputClasses} placeholder="ชื่อผู้ป่วย (ตามบัตรประชาชน)..." aria-label="ชื่อผู้ป่วย" name="name" value={relatedPatientInfo.name} onChange={handleInputChange} required />
+                                <input className={inputClasses} placeholder="ชื่อ-สกุลผู้ป่วย (ตามบัตรประชาชน)..." aria-label="ชื่อผู้ป่วย" name="name" value={relatedPatientInfo.name} onChange={handleInputChange} required />
                                 <input className={inputClasses} placeholder="เลขบัตรประชาชนผู้ป่วย..." aria-label="เลขบัตรประชาชนผู้ป่วย" name="idCard" value={relatedPatientInfo.idCard} onChange={handleInputChange} required />
+                                <input className={inputClasses} placeholder="เบอร์โทรผู้ป่วย..." aria-label="เบอร์โทรผู้ป่วย" name="phone" value={relatedPatientInfo.phone} onChange={handleInputChange} required />
                             </div>
                         </div>
                     )}
