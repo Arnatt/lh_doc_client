@@ -36,3 +36,13 @@ export const submitRequest = async (token, requestData) => {
   });
   return res.data;
 }
+
+export const cancelRequest = async (token, requestId) => {
+  const res = await axios.put(`http://localhost:5001/api/cancelRequest/${requestId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }
+  });
+  return res.data;
+}

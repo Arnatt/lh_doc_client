@@ -84,14 +84,16 @@ const FormDetailRequest = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        if (requesterType === 'relative') {
+
+        if (name === 'otherPurpose') {
+            setOtherPurpose(value);
+        } else if (requesterType === 'relative') {
             setRelatedPatientInfo(prev => ({ ...prev, [name]: value }));
         } else if (requesterType === 'company') {
             setCompanyInfo(prev => ({ ...prev, [name]: value }));
-        } else if (name === 'otherPurpose') {
-            setOtherPurpose(value);
         }
     };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -103,6 +105,15 @@ const FormDetailRequest = () => {
 
         const selectedDocumentsString = selectedDocumentLabels.join(', ');
 
+        let finalPurpose = '';
+        if (purpose === 'treatment') {
+            finalPurpose = 'ประกอบการรักษาพยาบาล';
+        } else if (purpose === 'insurance') {
+            finalPurpose = 'ประกอบการยื่นประกันชีวิต / ค่าสินไหมทดแทน / พ.ร.บ.';
+        } else if (purpose === 'other') {
+            finalPurpose = otherPurpose.trim(); // ใช้ข้อความที่ผู้ใช้กรอก
+        }
+
         const requestData = {
             requesterType,
             patientDetails: {
@@ -110,10 +121,9 @@ const FormDetailRequest = () => {
                 idCard: requesterType === 'patient' ? '' : relatedPatientInfo.idCard,
                 phone: requesterType === 'patient' ? '' : relatedPatientInfo.phone
             },
-            selectedDocuments: selectedDocumentsString, // เปลี่ยนเป็น String
+            selectedDocuments: selectedDocumentsString,
             requestDateRange,
-            purpose,
-            otherPurpose: purpose === 'other' ? otherPurpose : '',
+            purpose: finalPurpose,
             companyName: companyInfo.name,
             relativeRelation: relatedPatientInfo.relation,
         };

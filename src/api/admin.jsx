@@ -15,7 +15,7 @@ export const getAllRequests = async (token) => {
 };
 
 export const getRequestById = async (token, id) => {
-  return await axios.get(`http://localhost:5001/api/requests/${id}`, {
+  return await axios.get(`http://localhost:5001/api/request/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
