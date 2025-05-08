@@ -1,19 +1,32 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import useRequestStore from '../store/request-store'
 
 const ProtectedRouteAdmin = () => {
-  const isAdmin = useRequestStore((state) => state.isAdmin)
-  const token = useRequestStore((state) => state.token)
+  const {
+    token,
+    isAdmin,
+    currentAdmin,
+    fetchCurrentAdmin,
+    loading,
+  } = useRequestStore();
 
-  console.log("ProtectedRouteAdmin: token", token);
-  console.log("ProtectedRouteAdmin: isAdmin", isAdmin);
+  // ดึงข้อมูล admin เมื่อมี token แต่ currentAdmin ยังไม่มี
+  useEffect(() => {
+    if (token && !currentAdmin) {
+      fetchCurrentAdmin();
+    }
+  }, [token, currentAdmin, fetchCurrentAdmin]);
 
-  if (!token || !isAdmin) {
-    return <Navigate to="/login-admin" replace />
-
+  if (loading) {
+    return <div>Loading...</div>; // Spinner หรือ Skeleton ก็ได้
   }
-  return <Outlet />
-}
 
-export default ProtectedRouteAdmin
+  if (!token || !isAdmin || !currentAdmin) {
+    return <Navigate to="/login-admin" replace />;
+  }
+
+  return <Outlet />;
+};
+
+export default ProtectedRouteAdmin;
