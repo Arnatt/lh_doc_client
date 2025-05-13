@@ -63,8 +63,6 @@ const router = createBrowserRouter([
   }
 ])
 
-
-
 const AppRoutes = () => {
   return (
     <>
