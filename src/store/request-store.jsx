@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import axios from 'axios';
-import { currentUser as fetchCurrentUser } from '../api/auth';
+import { currentUser as fetchCurrentUser, currentAdmin as fetchCurrentAdmin } from '../api/auth';
 import { getAllRequests } from '../api/admin'; // <--- Import getAllRequests
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { getUserRequests, getUserProfile, updateUserProfile, submitRequest, cancelRequest } from '../api/user';
 
 const requestStore = (set, get) => ({
-    token: null,
+    userToken: null,
+    adminToken: null,
     currentUser: null,
     currentAdmin: null,
     loading: false,
@@ -17,7 +18,10 @@ const requestStore = (set, get) => ({
     errorRequests: null,
     requestInfo: {},
 
-    setToken: (newToken) => { set({ token: newToken }) },
+    setUserToken: (token) => set({ userToken: token }),
+    clearUserToken: () => set({ userToken: null }),
+    setAdminToken: (token) => set({ adminToken: token }),
+    clearAdminToken: () => set({ adminToken: null }),
     clearToken: () => { set({ token: null }) },
     setCurrentUser: (user) => { set({ currentUser: user }) },
     clearCurrentUser: () => { set({ currentUser: null }) },
@@ -33,9 +37,10 @@ const requestStore = (set, get) => ({
         try {
             const res = await axios.post("http://localhost:5001/api/login", { no_card_id, phone });
             set({
-                token: res.data.token,
+                userToken: res.data.token,
                 currentUser: res.data.payload,
                 loading: false,
+                isAdmin: false,
             });
             if (navigate) {
                 navigate("/user");
@@ -53,15 +58,18 @@ const requestStore = (set, get) => ({
         try {
             const res = await axios.post("http://localhost:5001/api/login-admin", { username, password });
             set({
-                token: res.data.token,
+                adminToken: res.data.token,
                 currentAdmin: res.data.payload,
                 loading: false,
                 isAdmin: true,
             });
+
+            await get().fetchCurrentAdmin();
+            await get().fetchAllRequests();
             if (navigate) {
                 navigate("/admin");
             }
-            get().fetchCurrentAdmin();
+
             return res;
         } catch (error) {
             console.error("Admin login failed:", error.response ? error.response.data : error.message);
@@ -71,7 +79,7 @@ const requestStore = (set, get) => ({
     },
 
     actionLogout: (navigate) => {
-        set({ token: null, currentUser: null, currentAdmin: null, isAdmin: false }); // รีเซ็ต currentAdmin ด้วย
+        set({ userToken: null, adminToken: null, currentUser: null, currentAdmin: null, isAdmin: false }); // รีเซ็ต currentAdmin ด้วย
         if (navigate) {
             navigate("/login");
         }
@@ -79,7 +87,7 @@ const requestStore = (set, get) => ({
 
     fetchCurrentUser: async () => {
         set({ loading: true, error: null });
-        const token = get().token;
+        const token = get().userToken;
         if (!token) {
             set({ loading: false });
             return;
@@ -89,30 +97,21 @@ const requestStore = (set, get) => ({
             set({ currentUser: res.data.currentUser, loading: false });
         } catch (error) {
             console.error("Failed to fetch current user:", error.response ? error.response.data : error.message);
-            set({ token: null, currentUser: null, loading: false, error: error.response ? error.response.data.message : "Failed to fetch user info" });
+            set({ userToken: null, currentUser: null, loading: false, error: error.response ? error.response.data.message : "Failed to fetch user info" });
         }
     },
 
     fetchCurrentAdmin: async () => {
         set({ loading: true, error: null });
-        const token = get().token;
+        const token = get().adminToken;
         if (!token) {
             set({ loading: false, isAdmin: false, currentAdmin: null });
             return;
         }
 
         try {
-            console.log("fetchCurrentAdmin: Calling API (POST) - http://localhost:5001/api/current-admin");
-            const res = await axios.post("http://localhost:5001/api/current-admin", {}, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (res.status >= 200 && res.status < 300) {
-                set({ currentAdmin: res.data.currentAdmin, loading: false, isAdmin: true });
-            } else {
-                console.error("fetchCurrentAdmin: API returned an error status:", res.status);
-                set({ error: `Failed to fetch admin profile (Status: ${res.status})`, loading: false, isAdmin: false, currentAdmin: null });
-                // อาจจะไม่ต้องล้าง Token ที่นี่ ปล่อยให้การ Logout เกิดจากการกระทำของผู้ใช้เท่านั้น
-            }
+            const res = await fetchCurrentAdmin(token);
+            set({ currentAdmin: res.data.currentAdmin, loading: false, isAdmin: true });
         } catch (error) {
             console.error("fetchCurrentAdmin: Error during API call:", error);
             set({ error: `Failed to fetch admin profile: ${error.message}`, loading: false, isAdmin: false, currentAdmin: null });
@@ -123,7 +122,7 @@ const requestStore = (set, get) => ({
     },
     fetchUserProfile: async () => {
         set({ loading: true, error: null });
-        const token = get().token;
+        const token = get().userToken;
         if (!token) {
             set({ loading: false });
             return;
@@ -134,7 +133,7 @@ const requestStore = (set, get) => ({
         } catch (error) {
             console.error("Failed to fetch user profile:", error.response ? error.response.data : error.message);
             set({
-                token: null,
+                userToken: null,
                 currentUser: null,
                 currentAdmin: null,
                 isAdmin: false,
@@ -150,7 +149,7 @@ const requestStore = (set, get) => ({
 
     fetchAllRequests: async () => {
         set({ loadingRequests: true, errorRequests: null });
-        const token = get().token;
+        const token = get().adminToken;
         try {
             const res = await getAllRequests(token); // <--- เรียกใช้ getAllRequests ที่ import มา
             set({ allRequests: res.data.data || [], loadingRequests: false }); // ตรวจสอบว่า res.data.data มีค่า
@@ -160,8 +159,9 @@ const requestStore = (set, get) => ({
         }
     },
 
-    fetchUserRequests: async (token, count = 10) => {
+    fetchUserRequests: async (count = 10) => {
         set({ loadingRequests: true, errorRequests: null });
+        const token = get().userToken;
         try {
             const res = await getUserRequests(token, count);
             set({ allRequests: res.data || [], loadingRequests: false });
@@ -176,7 +176,7 @@ const requestStore = (set, get) => ({
     },
 
     updateUserProfile: async (updatedData) => {
-        const token = get().token;
+        const token = get().userToken;
         if (!token) return;
         set({ loading: true, error: null });
         try {
