@@ -8,14 +8,14 @@ const AllTableRequest = () => {
     const [filterStartDate, setFilterStartDate] = useState('');
     const [filterEndDate, setFilterEndDate] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
-    const { token, allRequests, fetchAllRequests, loadingRequests, errorRequests } = useRequestStore();
+    const { adminToken, allRequests, fetchAllRequests, loadingRequests, errorRequests } = useRequestStore();
     const [statusOptions, setStatusOptions] = useState([]);
 
     useEffect(() => {
-        if (token) {
+        if (adminToken) {
             fetchAllRequests();
         }
-    }, [token, fetchAllRequests]);
+    }, [adminToken, fetchAllRequests]);
 
     useEffect(() => {
         if (allRequests && Array.isArray(allRequests) && allRequests.length > 0) {

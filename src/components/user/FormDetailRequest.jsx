@@ -50,6 +50,7 @@ const FormDetailRequest = () => {
     const navigate = useNavigate();
     const setRequestInfo = useRequestStore(state => state.setRequestInfo);
     const { submitRequestAction, setLoading, setError, loading, error } = useRequestStore();
+    const currentUser = useRequestStore(state => state.currentUser);
 
     const [requesterType, setRequesterType] = useState('');
     const [selectedDocs, setSelectedDocs] = useState({});
@@ -114,13 +115,21 @@ const FormDetailRequest = () => {
             finalPurpose = otherPurpose.trim(); // ใช้ข้อความที่ผู้ใช้กรอก
         }
 
+        const patientDetails = requesterType === 'patient'
+            ? {
+                name: currentUser?.name || '',
+                idCard: currentUser?.idCard || '',
+                phone: currentUser?.phone || ''
+              }
+            : {
+                name: relatedPatientInfo.name,
+                idCard: relatedPatientInfo.idCard,
+                phone: relatedPatientInfo.phone
+              };
+
         const requestData = {
             requesterType,
-            patientDetails: {
-                name: requesterType === 'patient' ? '' : relatedPatientInfo.name,
-                idCard: requesterType === 'patient' ? '' : relatedPatientInfo.idCard,
-                phone: requesterType === 'patient' ? '' : relatedPatientInfo.phone
-            },
+            patientDetails,
             selectedDocuments: selectedDocumentsString,
             requestDateRange,
             purpose: finalPurpose,

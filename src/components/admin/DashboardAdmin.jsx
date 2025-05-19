@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import useRequestStore from '../../store/request-store';
 
 const DashboardAdmin = () => {
-    const { token, allRequests, fetchAllRequests, loadingRequests, errorRequests } = useRequestStore();
+    const { adminToken, allRequests, fetchAllRequests, loadingRequests, errorRequests } = useRequestStore();
     const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
     const [completedRequestsCount, setCompletedRequestsCount] = useState(0);
     const [todayRequestsCount, setTodayRequestsCount] = useState(0);
     const [thisMonthRequestsCount, setThisMonthRequestsCount] = useState(0);
 
     useEffect(() => {
-        if (token) {
+        if (adminToken) {
             fetchAllRequests();
         }
-    }, [token, fetchAllRequests]);
+    }, [adminToken, fetchAllRequests]);
 
     useEffect(() => {
         if (allRequests && Array.isArray(allRequests)) {

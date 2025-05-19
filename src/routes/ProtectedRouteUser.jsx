@@ -3,9 +3,9 @@ import { Navigate, Outlet } from 'react-router-dom'
 import useRequestStore from '../store/request-store'
 
 const ProtectedRouteUser = () => {
-    const token = useRequestStore((state) => state.token)
+    const userToken = useRequestStore((state) => state.userToken)
 
-    if (!token) {
+    if (!userToken) {
         return <Navigate to="/login" replace /> 
     }
   return <Outlet />

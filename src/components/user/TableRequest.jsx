@@ -3,7 +3,7 @@ import useRequestStore from '../../store/request-store';
 
 const TableRequest = () => {
   const {
-    token,
+    userToken,
     allRequests,
     loadingRequests,
     fetchUserRequests,
@@ -16,10 +16,10 @@ const TableRequest = () => {
   const [cancelError, setCancelError] = useState(null);
 
   useEffect(() => {
-    if (token) {
-      fetchUserRequests(token, 10);
+    if (userToken) {
+      fetchUserRequests(userToken, 10);
     }
-  }, [token, fetchUserRequests]);
+  }, [userToken, fetchUserRequests]);
 
   const handleCancelClick = (reqId) => {
     setRequestIdToCancel(reqId);
@@ -30,14 +30,14 @@ const TableRequest = () => {
     setIsCancelling(true);
     setCancelError(null);
     try {
-      if (token && requestIdToCancel) {
-        console.log('กำลังเรียก cancelRequestAction ด้วย token:', token, 'และ requestId:', requestIdToCancel);
-        await cancelRequestAction(token, requestIdToCancel);
+      if (userToken && requestIdToCancel) {
+        console.log('กำลังเรียก cancelRequestAction ด้วย token:', userToken, 'และ requestId:', requestIdToCancel);
+        await cancelRequestAction(userToken, requestIdToCancel);
         console.log('cancelRequestAction เสร็จสิ้น');
         setShowCancelModal(false);
         setRequestIdToCancel(null);
         console.log('กำลังเรียก fetchUserRequests');
-        fetchUserRequests(token, 10);
+        fetchUserRequests(userToken, 10);
         console.log('fetchUserRequests เสร็จสิ้น');
       }
     } catch (error) {
@@ -55,7 +55,7 @@ const TableRequest = () => {
     setCancelError(null);
   };
 
-  if (!token) {
+  if (!userToken) {
     return <div className="text-center text-lg mt-10 text-red-500">กรุณาเข้าสู่ระบบเพื่อดูคำร้อง</div>;
   }
 

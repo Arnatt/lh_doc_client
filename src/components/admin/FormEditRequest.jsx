@@ -7,7 +7,7 @@ import { ArrowLeftIcon, DocumentTextIcon, CalendarDaysIcon, UserCircleIcon, Info
 const FormEditRequest = () => {
     const { id: requestId } = useParams();
     const navigate = useNavigate();
-    const { token } = useRequestStore();
+    const { adminToken } = useRequestStore();
 
     const [requestInfo, setRequestInfo] = useState(null);
     const [documentDetails, setDocumentDetails] = useState([]);
@@ -35,7 +35,7 @@ const FormEditRequest = () => {
         const fetchRequest = async () => {
             setLoading(true);
             setError(null);
-            if (!token) {
+            if (!adminToken) {
                 setError("ไม่ได้ยืนยันตัวตน (Missing Token)");
                 setLoading(false);
                 return;
@@ -47,7 +47,7 @@ const FormEditRequest = () => {
                 return;
             }
             try {
-                const response = await getRequestById(token, requestId);
+                const response = await getRequestById(adminToken, requestId);
                 const responseData = response?.data?.data;
 
                 if (responseData && responseData.requestInfo) {
@@ -70,7 +70,7 @@ const FormEditRequest = () => {
             }
         };
         fetchRequest();
-    }, [token, requestId, navigate]);
+    }, [adminToken, requestId, navigate]);
 
     // --- Handle Form Submission ---
     const handleSubmit = async (e) => {
@@ -78,7 +78,7 @@ const FormEditRequest = () => {
         setSubmitting(true);
         setError(null);
         try {
-            const response = await updateRequest(token, requestId, {
+            const response = await updateRequest(adminToken, requestId, {
                 status,
                 receive_date: receiveDate || null,
             });
