@@ -3,19 +3,19 @@ import { Navigate, Outlet } from 'react-router-dom';
 import useRequestStore from '../store/request-store';
 
 const ProtectedRouteAdmin = () => {
-  const { token, isAdmin, fetchCurrentAdmin, loading } = useRequestStore();
+  const { adminToken, isAdmin, fetchCurrentAdmin, loading } = useRequestStore();
 
   useEffect(() => {
-    if (token) {
+    if (adminToken) {
       fetchCurrentAdmin();
     }
-  }, [token]);
+  }, [adminToken]);
 
   if (loading) {
     return <div>Loading...</div>; // หรือ spinner
   }
 
-  if (!token || !isAdmin) {
+  if (!adminToken || !isAdmin) {
     return <Navigate to="/login-admin" replace />;
   }
 

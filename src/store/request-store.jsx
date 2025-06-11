@@ -35,26 +35,34 @@ const requestStore = (set, get) => ({
     actionLogin: async (no_card_id, phone, navigate) => {
         set({ loading: true, error: null });
         try {
-            const res = await axios.post("http://localhost:5001/api/login", { no_card_id, phone });
+            const res = await axios.post("http://localhost:5001/api/login", {
+                no_card_id,
+                phone
+            });
+
             set({
                 userToken: res.data.token,
                 currentUser: res.data.payload,
                 loading: false,
                 isAdmin: false,
             });
-            if (navigate) {
-                navigate("/user");
-            }
+
+            await get().fetchCurrentUser(); // ✅ เพิ่มเติม
+
+            if (navigate) navigate("/user");
             return res;
         } catch (error) {
             console.error("Login failed:", error.response ? error.response.data : error.message);
-            set({ loading: false, error: error.response ? error.response.data.message : "Login failed" });
+            set({
+                loading: false,
+                error: error.response ? error.response.data.message : "Login failed"
+            });
             throw error;
         }
     },
 
     actionLoginAdmin: async (username, password, navigate) => {
-        set({ loading: true, error: null, isAdmin: false, currentUser: null }); // รีเซ็ต isAdmin และ currentUser
+        set({ loading: true, error: null, isAdmin: false, currentUser: null });
         try {
             const res = await axios.post("http://localhost:5001/api/login-admin", { username, password });
             set({
@@ -66,10 +74,7 @@ const requestStore = (set, get) => ({
 
             await get().fetchCurrentAdmin();
             await get().fetchAllRequests();
-            if (navigate) {
-                navigate("/admin");
-            }
-
+            if (navigate) navigate("/admin");
             return res;
         } catch (error) {
             console.error("Admin login failed:", error.response ? error.response.data : error.message);
@@ -79,10 +84,14 @@ const requestStore = (set, get) => ({
     },
 
     actionLogout: (navigate) => {
-        set({ userToken: null, adminToken: null, currentUser: null, currentAdmin: null, isAdmin: false }); // รีเซ็ต currentAdmin ด้วย
-        if (navigate) {
-            navigate("/login");
-        }
+        set({
+            userToken: null,
+            adminToken: null,
+            currentUser: null,
+            currentAdmin: null,
+            isAdmin: false
+        });
+        if (navigate) navigate("/login");
     },
 
     fetchCurrentUser: async () => {
@@ -97,7 +106,12 @@ const requestStore = (set, get) => ({
             set({ currentUser: res.data.currentUser, loading: false });
         } catch (error) {
             console.error("Failed to fetch current user:", error.response ? error.response.data : error.message);
-            set({ userToken: null, currentUser: null, loading: false, error: error.response ? error.response.data.message : "Failed to fetch user info" });
+            set({
+                userToken: null,
+                currentUser: null,
+                loading: false,
+                error: error.response ? error.response.data.message : "Failed to fetch user info"
+            });
         }
     },
 
@@ -115,11 +129,11 @@ const requestStore = (set, get) => ({
         } catch (error) {
             console.error("fetchCurrentAdmin: Error during API call:", error);
             set({ error: `Failed to fetch admin profile: ${error.message}`, loading: false, isAdmin: false, currentAdmin: null });
-            // อาจจะไม่ต้องล้าง Token ที่นี่
         } finally {
             set({ loading: false });
         }
     },
+
     fetchUserProfile: async () => {
         set({ loading: true, error: null });
         const token = get().userToken;
@@ -151,11 +165,15 @@ const requestStore = (set, get) => ({
         set({ loadingRequests: true, errorRequests: null });
         const token = get().adminToken;
         try {
-            const res = await getAllRequests(token); // <--- เรียกใช้ getAllRequests ที่ import มา
-            set({ allRequests: res.data.data || [], loadingRequests: false }); // ตรวจสอบว่า res.data.data มีค่า
+            const res = await getAllRequests(token);
+            set({ allRequests: res.data.data || [], loadingRequests: false });
         } catch (error) {
             console.error("Failed to fetch all requests:", error);
-            set({ errorRequests: error.message || "Failed to fetch all requests", loadingRequests: false, allRequests: [] }); // ตั้งค่า allRequests เป็น [] ในกรณี error
+            set({
+                errorRequests: error.message || "Failed to fetch all requests",
+                loadingRequests: false,
+                allRequests: []
+            });
         }
     },
 
@@ -193,7 +211,7 @@ const requestStore = (set, get) => ({
 
     submitRequestAction: async (requestData, navigate) => {
         set({ loading: true, error: null });
-        const token = get().token;
+        const token = get().userToken; // ✅ แก้จาก get().token เป็น userToken
         if (!token) {
             set({ loading: false, error: 'Token not available. Please log in.' });
             return;
@@ -201,9 +219,7 @@ const requestStore = (set, get) => ({
         try {
             const response = await submitRequest(token, requestData);
             set({ requestInfo: response, loading: false, error: null });
-            if (navigate) {
-                navigate('/user');
-            }
+            if (navigate) navigate('/user');
             return response;
         } catch (error) {
             console.error("Failed to submit document request:", error);
@@ -214,37 +230,37 @@ const requestStore = (set, get) => ({
 
     cancelRequest: async (token, requestId) => {
         set({ loadingRequests: true, requestsError: null });
-        console.log('กำลังเรียก cancelRequest API สำหรับ ID:', requestId);
         try {
             const response = await cancelRequestApi(token, requestId);
-            console.log('API cancelRequest สำเร็จ:', response.data);
             set({ loadingRequests: false, requestsError: null });
             set(state => ({
                 allRequests: state.allRequests.map(req =>
                     req.req_id === requestId ? { ...req, status: 'ยกเลิกคำร้อง' } : req
                 ),
             }));
-            console.log('State allRequests หลังอัปเดต:', get().allRequests);
-            get().fetchUserRequests(token, 10); // Ensure fetch is called
-            console.log('เรียก fetchUserRequests อีกครั้ง');
+            get().fetchUserRequests(10);
         } catch (error) {
             console.error('Failed to cancel request:', error);
-            set({ loadingRequests: false, requestsError: error.response?.data?.message || 'Failed to cancel request' });
+            set({
+                loadingRequests: false,
+                requestsError: error.response?.data?.message || 'Failed to cancel request'
+            });
         }
     },
-
-})
+});
 
 const usePersist = {
     name: "request-store",
     storage: createJSONStorage(() => localStorage),
     partialize: (state) => ({
-        token: state.token,
+        userToken: state.userToken,
+        adminToken: state.adminToken,
         currentUser: state.currentUser,
         currentAdmin: state.currentAdmin,
-        isAdmin: state.isAdmin, // Persist isAdmin
+        isAdmin: state.isAdmin,
     }),
 };
+
 const useRequestStore = create(persist(requestStore, usePersist));
 
 export default useRequestStore;

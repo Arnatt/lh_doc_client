@@ -49,7 +49,7 @@ const RequestDateSelector = ({ requestDateRange, onRequestDateChange }) => (
 const FormDetailRequest = () => {
     const navigate = useNavigate();
     const setRequestInfo = useRequestStore(state => state.setRequestInfo);
-    const { submitRequestAction, setLoading, setError, loading, error } = useRequestStore();
+    const { currentUser, submitRequestAction, setLoading, setError, loading, error } = useRequestStore();
 
     const [requesterType, setRequesterType] = useState('');
     const [selectedDocs, setSelectedDocs] = useState({});
@@ -114,12 +114,33 @@ const FormDetailRequest = () => {
             finalPurpose = otherPurpose.trim(); // ใช้ข้อความที่ผู้ใช้กรอก
         }
 
+        const fullName = requesterType === "patient"
+            ? `${currentUser?.first_name || ""} ${currentUser?.last_name || ""}`
+            : requesterType === "relative"
+                ? relatedPatientInfo.name
+                : companyInfo.patientName;
+
+        const [fname, ...lnameParts] = fullName.trim().split(" ");
+        const lname = lnameParts.join(" ");
+
         const requestData = {
             requesterType,
             patientDetails: {
-                name: requesterType === 'patient' ? '' : relatedPatientInfo.name,
-                idCard: requesterType === 'patient' ? '' : relatedPatientInfo.idCard,
-                phone: requesterType === 'patient' ? '' : relatedPatientInfo.phone
+                name: fullName,
+                idCard:
+                    requesterType === "patient"
+                        ? currentUser?.no_card_id || ""
+                        : requesterType === "relative"
+                            ? relatedPatientInfo.idCard
+                            : companyInfo.patientIdCard,
+                phone:
+                    requesterType === "patient"
+                        ? currentUser?.phone || ""
+                        : requesterType === "relative"
+                            ? relatedPatientInfo.phone || ""
+                            : companyInfo.phone || "", // company ไม่มี phone ผู้ป่วย (เว้นว่างไว้)
+                fname,
+                lname,
             },
             selectedDocuments: selectedDocumentsString,
             requestDateRange,
@@ -127,6 +148,7 @@ const FormDetailRequest = () => {
             companyName: companyInfo.name,
             relativeRelation: relatedPatientInfo.relation,
         };
+
 
         try {
             await submitRequestAction(requestData, navigate);
@@ -196,6 +218,7 @@ const FormDetailRequest = () => {
                                 <input className={inputClasses} placeholder="ชื่อตัวแทนบริษัท..." aria-label="ชื่อตัวแทนบริษัท" name="name" value={companyInfo.name} onChange={handleInputChange} required />
                                 <input className={inputClasses} placeholder="ชื่อผู้ป่วย (ตามบัตรประชาชน)..." aria-label="ชื่อผู้ป่วย" name="patientName" value={companyInfo.patientName} onChange={handleInputChange} required />
                                 <input className={inputClasses} placeholder="เลขบัตรประชาชนผู้ป่วย..." aria-label="เลขบัตรประชาชนผู้ป่วย" name="patientIdCard" value={companyInfo.patientIdCard} onChange={handleInputChange} required />
+                                <input className={inputClasses} placeholder="เบอร์โทรผู้ป่วย..." aria-label="เบอร์โทรผู้ป่วย" name="phone" value={companyInfo.phone} onChange={handleInputChange} required />
                             </div>
                         </div>
                     )}

@@ -3,7 +3,7 @@ import useRequestStore from '../../store/request-store';
 
 const TableRequest = () => {
   const {
-    token,
+    userToken: token,
     allRequests,
     loadingRequests,
     fetchUserRequests,

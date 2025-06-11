@@ -22,7 +22,7 @@ const FormRequest = () => {
     });
 
     const navigate = useNavigate();
-    const token = useRequestStore(state => state.token);
+    const userToken = useRequestStore(state => state.userToken);
     const fetchUserProfile = useRequestStore(state => state.fetchUserProfile);
     const currentUser = useRequestStore(state => state.currentUser);
     const setRequestInfo = useRequestStore(state => state.setRequestInfo);
@@ -45,10 +45,10 @@ const FormRequest = () => {
     }, []);
 
     useEffect(() => {
-        if (token) {
+        if (userToken) {
             fetchUserProfile();
         }
-    }, [token, fetchUserProfile]);
+    }, [userToken, fetchUserProfile]);
 
     useEffect(() => {
         if (currentUser) {
